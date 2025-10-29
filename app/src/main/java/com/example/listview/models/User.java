@@ -1,6 +1,8 @@
-package com.example.listview;
+package com.example.listview.models;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private String name;
     private int age;
 

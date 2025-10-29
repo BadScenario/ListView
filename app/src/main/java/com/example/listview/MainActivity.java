@@ -10,13 +10,17 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.listview.databinding.ActivityMainBinding;
+import com.example.listview.models.User;
+import com.example.listview.utils.MyDialog;
+import com.example.listview.utils.Removable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Removable {
 
     List<User> users = new ArrayList<>();
+    ArrayAdapter<User> adapter;
     private ActivityMainBinding binding;
 
     @Override
@@ -27,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(binding.titleTB);
         getSupportActionBar().setTitle("Каталог пользователей");
 
-        ArrayAdapter<User> adapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, users);
+        adapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, users);
         binding.listUsersLV.setAdapter(adapter);
 
         binding.saveBTN.setOnClickListener(v -> {
@@ -46,7 +50,11 @@ public class MainActivity extends AppCompatActivity {
 
         binding.listUsersLV.setOnItemClickListener((parent, view, position, id) -> {
             User user = adapter.getItem(position);
-            adapter.remove(user);
+            MyDialog dialog = new MyDialog();
+            Bundle args = new Bundle();
+            args.putSerializable("User", user);
+            dialog.setArguments(args);
+            dialog.show(getSupportFragmentManager(), "Custom");
         });
     }
 
@@ -63,5 +71,12 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Программа завершена", Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    @Override
+    public void remove(User user) {
+        if (adapter != null) {
+            adapter.remove(user);
+        }
     }
 }
