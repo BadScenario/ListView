@@ -8,6 +8,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.listview.databinding.ActivityMainBinding;
 import com.example.listview.models.User;
@@ -19,20 +21,30 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements Removable {
 
-    List<User> users = new ArrayList<>();
-    ArrayAdapter<User> adapter;
+    private ArrayAdapter<User> adapter;
+    private MainViewModel mainViewModel;
     private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
         super.onCreate(savedInstanceState);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.titleTB);
         getSupportActionBar().setTitle("Каталог пользователей");
 
-        adapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, users);
+        mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+
+        adapter = new ArrayAdapter<>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, new ArrayList<>());
         binding.listUsersLV.setAdapter(adapter);
+
+        mainViewModel.getUsers().observe(this, users -> {
+            adapter.clear();
+            if (users != null) {
+                adapter.addAll(users);
+            }
+            adapter.notifyDataSetChanged();
+        });
 
         binding.saveBTN.setOnClickListener(v -> {
             if (binding.editUserOneET.getText().isEmpty() || binding.editUserSecondET.getText().isEmpty()) {
@@ -41,9 +53,10 @@ public class MainActivity extends AppCompatActivity implements Removable {
             }
             String name = binding.editUserOneET.getText().toString();
             int age = Integer.parseInt(binding.editUserSecondET.getText().toString());
-            users.add(new User(name, age));
+            User user = new User(name, age);
 
-            adapter.notifyDataSetChanged();
+            mainViewModel.addUser(user);
+
             binding.editUserOneET.getText().clear();
             binding.editUserSecondET.getText().clear();
         });
@@ -75,8 +88,6 @@ public class MainActivity extends AppCompatActivity implements Removable {
 
     @Override
     public void remove(User user) {
-        if (adapter != null) {
-            adapter.remove(user);
-        }
+        mainViewModel.removeUser(user);
     }
 }
